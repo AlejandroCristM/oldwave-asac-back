@@ -23,7 +23,7 @@ routeOrder.post("/order", async (req, res) => {
     res.json(order);
 });
 
-routeOrder.get("/order:id", async (req, res) => {
+routeOrder.get("/order/:id", async (req, res) => {
     const id: string = req.params.id as string;
     let order = await prisma.order.findUnique({
         where: {
