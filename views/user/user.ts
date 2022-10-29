@@ -36,7 +36,19 @@ routeUser.get("/user/", async (req, res) => {
             id: true,
         }
     });
-    res.json(user);
+    let getDetails = await prisma.user.findUnique({
+        where: {
+          id: user[0].id,
+        },
+        select: {
+          roleUser: {
+            select: {
+              isAdmin: true,
+            },
+          },
+        },
+      });
+    res.json({user, getDetails});
 });
 
 routeUser.patch("/user/:id", async (req, res) => {
@@ -75,5 +87,44 @@ routeUser.patch("/user/:id", async (req, res) => {
     res.json({user, getDetails});
     
 });
+
+routeUser.get("/client/:id", async (req, res) => {
+    const id: string = req.params.id as string;
+    let client = await prisma.client.findUnique({
+        where: {
+            userId: id,
+        },
+        select: {
+            orders: {
+                select: {
+                    id: true,
+                    clientId: true,
+                    addressId: true,
+                    invoiceAddress: true,
+                    shipmentDate: true,
+                    paymentMethod: true,
+                    deliveryStatus: true,
+                    trackNumber: true,
+                    total: true,
+                    details: true,
+                },
+            },
+            shoppingCart: {
+                select: {
+                    id: true,
+                    clientId: true,
+                    total: true,
+                    details: true,
+                },
+            },
+            userId: true,
+            addressId: true,
+        },
+    });
+    res.json(client);
+});
+
+
+
 
 export default routeUser;
