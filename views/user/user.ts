@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const routeUser = express.Router();
 // create user route
 routeUser.post("/user", async (req, res) => {
-    const { name, lastName, documentType,documentNumber,birthDate,gender, email,phone,cityId } = req.body;
+    const { name, lastName, documentType,documentNumber,birthDate,gender, email,phone,cityId,addressId } = req.body;
     const user = await prisma.user.create({
         data: {
             name: name,
@@ -18,12 +18,12 @@ routeUser.post("/user", async (req, res) => {
             phoneNumber: phone,
             email: email,
             cityId: cityId,
-            
-                    
         },
     });
     res.json(user);
 });
+
+
 
 //search user by email and return user id
 routeUser.get("/user/", async (req, res) => {
@@ -36,23 +36,30 @@ routeUser.get("/user/", async (req, res) => {
             id: true,
         }
     });
-    let getDetails = await prisma.user.findUnique({
-        where: {
-          id: user[0].id,
-        },
-        select: {
-          roleUser: {
-            select: {
-              isAdmin: true,
+    if(user.length > 0){
+      let getDetails = await prisma.user.findUnique({
+          where: {
+            id: user[0].id,
+          },
+          select: {
+            roleUser: {
+              select: {
+                isAdmin: true,
+              },
             },
           },
-        },
-      });
-    res.json({user, getDetails});
+        });
+        if(getDetails?.roleUser===null){
+          getDetails.roleUser = {isAdmin: false}
+          res.json({user, getDetails});
+        }
+      res.json({user, getDetails});
+    }
+    res.json(null);
+
 });
 
 routeUser.patch("/user/:id", async (req, res) => {
-    console.log('entro al get')
     const id: string = req.params.id as string;
     let user = await prisma.user.findUnique({
         where: {
@@ -124,7 +131,16 @@ routeUser.get("/client/:id", async (req, res) => {
     res.json(client);
 });
 
-
+routeUser.post("/client", async (req, res) => {
+    const { userId, addressId } = req.body;
+    const client = await prisma.client.create({
+        data: {
+            userId: userId,
+            addressId: addressId,
+        },
+    });
+    res.json(client);
+});
 
 
 export default routeUser;
