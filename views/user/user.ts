@@ -143,4 +143,5 @@ routeUser.post("/client", async (req, res) => {
 });
 
 
+
 export default routeUser;
