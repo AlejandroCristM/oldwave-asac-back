@@ -26,6 +26,8 @@ env:
   AZURE_WEBAPP_NAME: asac-back-prod    # set this to your application's name
   AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
   NODE_VERSION: '14.x'                # set this to the node version to use
+  REACT_APP_AUTH0_CLIENT_ID: ${{ secrets.REACT_APP_AUTH0_CLIENT_ID }}
+  REACT_APP_AUTH0_DOMAIN : ${{ secrets.REACT_APP_AUTH0_DOMAIN }}
 
 jobs:
   build-and-deploy:
