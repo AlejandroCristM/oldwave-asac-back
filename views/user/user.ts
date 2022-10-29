@@ -26,8 +26,8 @@ routeUser.post("/user", async (req, res) => {
 });
 
 //search user by email and return user id
-routeUser.get("/user/:email", async (req, res) => {
-    const email: string = req.params.email as string;
+routeUser.get("/user/", async (req, res) => {
+    const email: string = req.headers.email as string;
     let user = await prisma.user.findMany({
         where: {
             email: email,
@@ -39,7 +39,8 @@ routeUser.get("/user/:email", async (req, res) => {
     res.json(user);
 });
 
-routeUser.get("/user/:id", async (req, res) => {
+routeUser.patch("/user/:id", async (req, res) => {
+    console.log('entro al get')
     const id: string = req.params.id as string;
     let user = await prisma.user.findUnique({
         where: {
@@ -58,7 +59,7 @@ routeUser.get("/user/:id", async (req, res) => {
             cityId: true,
         },
     });
-
+    
     let getDetails = await prisma.user.findUnique({
       where: {
         id: id,
