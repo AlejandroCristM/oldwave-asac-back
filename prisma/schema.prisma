@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,197 +10,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model address {
-  id             String   @id
-  cityId         String
-  addressLine    String
-  additionalInfo String
-  city           city     @relation(fields: [cityId], references: [id], map: "Address_cityId_fkey")
-  client         client[]
-  order          order[]
-
-  @@index([cityId], map: "Address_cityId_fkey")
-}
-
-model category {
-  id              String            @id
-  name            String
-  categoryproduct categoryproduct[]
-}
-
-model categoryproduct {
-  id         String   @id
-  categoryId String
-  productId  String
-  category   category @relation(fields: [categoryId], references: [id], map: "CategoryProduct_categoryId_fkey")
-  product    product  @relation(fields: [productId], references: [id], map: "CategoryProduct_productId_fkey")
-
-  @@index([categoryId], map: "CategoryProduct_categoryId_fkey")
-  @@index([productId], map: "CategoryProduct_productId_fkey")
-}
-
-model city {
-  id           String     @id
-  name         String
-  departmentId String
-  department   department @relation(fields: [departmentId], references: [id], map: "City_departmentId_fkey")
-  address      address[]
-  seller       seller[]
-  user         user[]
-
-  @@index([departmentId], map: "City_departmentId_fkey")
-}
-
-model client {
-  id           String        @id
-  addressId    String
-  userId       String        @unique(map: "Client_userId_key")
-  address      address       @relation(fields: [addressId], references: [id], map: "Client_addressId_fkey")
-  user         user          @relation(fields: [userId], references: [id], map: "Client_userId_fkey")
-  order        order[]
-  rating       rating[]
-  shoppingcart shoppingcart?
-
-  @@index([addressId], map: "Client_addressId_fkey")
-}
-
-model country {
-  id          String       @id
+model Country {
+  id          String       @id @default(cuid())
   name        String
   countryCode String
-  department  department[]
+  departments Department[]
 }
 
-model department {
-  id        String  @id
-  name      String
-  countryId String
-  country   country @relation(fields: [countryId], references: [id], map: "Department_countryId_fkey")
-  city      city[]
-
-  @@index([countryId], map: "Department_countryId_fkey")
+model Department {
+  id                String  @id @default(cuid())
+  name              String
+  departmentCountry Country @relation(fields: [countryId], references: [id])
+  countryId         String
+  cities            City[]
 }
 
-model image {
-  id        String  @id
-  productId String
-  url       String
-  main      Boolean @default(false)
-  product   product @relation(fields: [productId], references: [id], map: "Image_productId_fkey")
-
-  @@index([productId], map: "Image_productId_fkey")
+model City {
+  id             String     @id @default(cuid())
+  name           String
+  cityDepartment Department @relation(fields: [departmentId], references: [id])
+  departmentId   String
+  users          User[]
+  addresses      Address[]
+  sellercities   Seller[]
 }
 
-model order {
-  id             String        @id
-  clientId       String
-  addressId      String
-  invoiceAddress String
-  shipmentDate   String
-  paymentMethod  String
-  deliveryStatus String
-  total          Decimal
-  trackNumber    String
-  address        address       @relation(fields: [addressId], references: [id], map: "Order_addressId_fkey")
-  client         client        @relation(fields: [clientId], references: [id], map: "Order_clientId_fkey")
-  orderdetail    orderdetail[]
-
-  @@index([addressId], map: "Order_addressId_fkey")
-  @@index([clientId], map: "Order_clientId_fkey")
-}
-
-model orderdetail {
-  id        String  @id
-  orderId   String
-  productId String
-  value     Decimal
-  units     Int
-  subTotal  Decimal
-  order     order   @relation(fields: [orderId], references: [id], map: "OrderDetail_orderId_fkey")
-  product   product @relation(fields: [productId], references: [id], map: "OrderDetail_productId_fkey")
-
-  @@index([orderId], map: "OrderDetail_orderId_fkey")
-  @@index([productId], map: "OrderDetail_productId_fkey")
-}
-
-model product {
-  id                  String                @id
-  sellerId            String
-  name                String
-  brand               String
-  value               Decimal
-  description         String
-  stock               Int
-  thumbnail           String                @default("")
-  seller              seller                @relation(fields: [sellerId], references: [id], map: "Product_sellerId_fkey")
-  categoryproduct     categoryproduct[]
-  image               image[]
-  orderdetail         orderdetail[]
-  rating              rating[]
-  shoppingcartdetails shoppingcartdetails[]
-
-  @@index([sellerId], map: "Product_sellerId_fkey")
-}
-
-model rating {
-  id        String  @id
-  productId String
-  clientId  String
-  rate      Int
-  comment   String
-  client    client  @relation(fields: [clientId], references: [id], map: "Rating_clientId_fkey")
-  product   product @relation(fields: [productId], references: [id], map: "Rating_productId_fkey")
-
-  @@index([clientId], map: "Rating_clientId_fkey")
-  @@index([productId], map: "Rating_productId_fkey")
-}
-
-model role {
-  id      String  @id
-  userId  String  @unique(map: "Role_userId_key")
-  isAdmin Boolean
-  user    user    @relation(fields: [userId], references: [id], map: "Role_userId_fkey")
-}
-
-model seller {
-  id          String    @id
-  clientId    String    @unique(map: "Seller_clientId_key")
-  sellerName  String
-  logo        String
-  cityId      String
-  phoneNumber String
-  sellerEmail String
-  city        city      @relation(fields: [cityId], references: [id], map: "Seller_cityId_fkey")
-  user        user      @relation(fields: [clientId], references: [id], map: "Seller_clientId_fkey")
-  product     product[]
-
-  @@index([cityId], map: "Seller_cityId_fkey")
-}
-
-model shoppingcart {
-  id                  String                @id
-  clientId            String                @unique(map: "ShoppingCart_clientId_key")
-  total               Decimal
-  client              client                @relation(fields: [clientId], references: [id], map: "ShoppingCart_clientId_fkey")
-  shoppingcartdetails shoppingcartdetails[]
-}
-
-model shoppingcartdetails {
-  id             String       @id
-  shoppingCartId String
-  productId      String
-  value          Decimal
-  units          Int
-  subTotal       Decimal
-  product        product      @relation(fields: [productId], references: [id], map: "ShoppingCartDetails_productId_fkey")
-  shoppingcart   shoppingcart @relation(fields: [shoppingCartId], references: [id], map: "ShoppingCartDetails_shoppingCartId_fkey")
-
-  @@index([productId], map: "ShoppingCartDetails_productId_fkey")
-  @@index([shoppingCartId], map: "ShoppingCartDetails_shoppingCartId_fkey")
-}
-
-model user {
-  id           String   @id
+model User {
+  id           String   @id @default(cuid())
+  userCity     City     @relation(fields: [cityId], references: [id])
   cityId       String
   name         String
   lastName     String
@@ -207,10 +47,142 @@ model user {
   email        String
   gender       String
   phoneNumber  String
-  city         city     @relation(fields: [cityId], references: [id], map: "User_cityId_fkey")
-  client       client?
-  role         role?
-  seller       seller?
+  client      Client?
+  seller      Seller?
+  roleUser     Role?
+}
 
-  @@index([cityId], map: "User_cityId_fkey")
+model Role{
+  id          String   @id @default(cuid())
+  roleUser    User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  isAdmin     Boolean
+}
+
+model Address {
+  id              String   @id @default(cuid())
+  addressCity     City     @relation(fields: [cityId], references: [id])
+  cityId          String
+  addressLine     String
+  additionalInfo  String
+  clientAddresses Client[]
+  orders          Order[]
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  clientAddress Address  @relation(fields: [addressId], references: [id])
+  addressId     String
+  clientUser    User     @relation(fields: [userId], references: [id])
+  userId        String   @unique
+  orders        Order[]
+  shoppingCart  ShoppingCart?
+  ratings       Rating[]
+}
+
+model Seller {
+  id          String    @id @default(cuid())
+  sellerUser  User      @relation(fields: [clientId], references: [id])
+  clientId    String    @unique
+  sellerName  String
+  logo        String
+  addressCity City      @relation(fields: [cityId], references: [id])
+  cityId      String
+  phoneNumber String
+  sellerEmail String
+  products    Product[]
+}
+
+model Category {
+  id         String            @id @default(cuid())
+  name       String
+  categories CategoryProduct[]
+}
+
+model Product {
+  id            String            @id @default(cuid())
+  productSeller Seller            @relation(fields: [sellerId], references: [id])
+  sellerId      String
+  name          String
+  brand         String
+  value         Decimal
+  description   String
+  stock         Int
+  categories    CategoryProduct[]
+  images        Image[]
+  details       OrderDetail[]
+  ratings       Rating[]
+  cartDetails    ShoppingCartDetails[]
+  thumbnail     String            @default("")
+}
+
+model CategoryProduct {
+  id               String   @id @default(cuid())
+  categoryCategory Category @relation(fields: [categoryId], references: [id])
+  categoryId       String
+  categoryProduct  Product  @relation(fields: [productId], references: [id])
+  productId        String
+}
+
+model Image {
+  id           String  @id @default(cuid())
+  imageProduct Product @relation(fields: [productId], references: [id])
+  productId    String
+  url          String
+  main         Boolean @default(false)
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  orderClient    Client        @relation(fields: [clientId], references: [id])
+  clientId       String
+  orderAddress   Address       @relation(fields: [addressId], references: [id])
+  addressId      String
+  invoiceAddress String
+  shipmentDate   String
+  paymentMethod  String
+  deliveryStatus String
+  total          Decimal
+  trackNumber    String
+  details        OrderDetail[]
+}
+
+model OrderDetail {
+  id           String  @id @default(cuid())
+  detailOrder  Order   @relation(fields: [orderId], references: [id])
+  orderId      String
+  orderProduct Product @relation(fields: [productId], references: [id])
+  productId    String
+  value        Decimal
+  units        Int
+  subTotal     Decimal
+}
+
+model ShoppingCart {
+  id             String        @id @default(cuid())
+  cartClient     Client        @relation(fields: [clientId], references: [id])
+  clientId       String        @unique
+  total          Decimal
+  details        ShoppingCartDetails[]
+}
+
+model ShoppingCartDetails {
+  id                String  @id @default(cuid())
+  detailcart        ShoppingCart   @relation(fields: [shoppingCartId], references: [id])
+  shoppingCartId    String
+  cartProduct       Product @relation(fields: [productId], references: [id])
+  productId         String
+  value             Decimal
+  units             Int
+  subTotal          Decimal
+}
+
+model Rating {
+  id            String  @id @default(cuid())
+  ratingProduct Product @relation(fields: [productId], references: [id])
+  productId     String
+  ratingClient  Client  @relation(fields: [clientId], references: [id])
+  clientId      String
+  rate          Int
+  comment       String
 }
