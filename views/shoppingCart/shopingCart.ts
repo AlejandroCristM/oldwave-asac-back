@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { strict } from "assert";
 import express from "express";
 
 const prisma = new PrismaClient();
@@ -33,6 +34,67 @@ routeShoppingCart.get("/cart/:id", async (req, res) => {
                     },
                   },
                 },
+              },
+            },
+          },
+        },
+      },
+    });
+    res.json(getDetails);
+});
+
+routeShoppingCart.get("/cart", async (req, res) => {
+  //header
+  const id: string = req.headers.id as string;
+    let getDetails = await prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        documentType: true,
+        documentId: true,
+        dateOfBirth: true,
+        gender: true,
+        phoneNumber: true,
+        email: true,
+        cityId: true,
+        client: {
+          select: {
+            shoppingCart: {
+              select: {
+                id: true,
+                total: true,
+                details: {
+                  select: {
+                    id: true,
+                    units: true,
+                    cartProduct: {
+                      select: {
+                        name: true,
+                        stock: true,
+                        thumbnail: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orders: {
+              select: {
+                id: true,
+                clientId: true,
+                addressId: true,
+                invoiceAddress: true,
+                shipmentDate: true,
+                paymentMethod: true,
+                deliveryStatus: true,
+                trackNumber: true,
+                total: true,
+                details: true,
               },
             },
           },

@@ -22,5 +22,16 @@ routeRole.get("/role/:id", async (req, res) => {
     });
     res.json(getDetails);
 });
+//create role
+routeRole.post("/role", async (req, res) => {
+  const { userId, isAdmin } = req.body;
+  const newRole = await prisma.role.create({
+    data:{
+      userId: userId,
+      isAdmin: isAdmin
+    }
+  });
+  res.json(newRole);
+});
 
 export default routeRole;
